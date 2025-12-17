@@ -1,36 +1,64 @@
 import streamlit as st
-import pandas as pd
 import joblib
 import os
 
-MODEL_PATH = "matchmaker_model.pkl"
+# IMPORTANT: Import ML classes BEFORE loading model
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
 
-if not os.path.exists(MODEL_PATH):
-    st.error("Model file not found.")
-    st.stop()
+# ----------------------------
+# Page config
+# ----------------------------
+st.set_page_config(
+    page_title="MatchmakerAI 💘",
+    page_icon="💘",
+    layout="centered"
+)
 
-model = joblib.load(MODEL_PATH)
+st.title("💘 MatchmakerAI")
+st.write("Predict whether a person is **Single** or **Not Single**")
 
-st.set_page_config(page_title="MatchmakerAI", page_icon="❤️")
-st.title("❤️ MatchmakerAI")
+# ----------------------------
+# Load Model
+# ----------------------------
+MODEL_PATH = "model.pkl"
 
-essay = st.text_area("Profile Essay", height=200)
-age = st.slider("Age", 18, 70, 25)
-
-if st.button("Predict"):
-    if essay.strip() == "":
-        st.warning("Please enter an essay.")
+@st.cache_resource
+def load_model():
+    if not os.path.exists(MODEL_PATH):
+        st.error("❌ Model file not found!")
         st.stop()
+    return joblib.load(MODEL_PATH)
 
-    input_df = pd.DataFrame({
-        "essays": [essay],
-        "age": [age]
-    })
+model = load_model()
 
-    prediction = model.predict(input_df)[0]
-    probability = model.predict_proba(input_df).max()
+# ----------------------------
+# User Input
+# ----------------------------
+essay = st.text_area(
+    "✍️ Describe yourself",
+    placeholder="I enjoy traveling, meeting new people, and working on my career..."
+)
 
-    if prediction == "single":
-        st.success(f"💙 Prediction: SINGLE ({probability:.2%})")
+age = st.number_input(
+    "🎂 Age",
+    min_value=18,
+    max_value=100,
+    value=25
+)
+
+# ----------------------------
+# Prediction
+# ----------------------------
+if st.button("🔮 Predict Relationship Status"):
+    if essay.strip() == "":
+        st.warning("Please write a short description.")
     else:
-        st.error(f"❤️ Prediction: NOT SINGLE ({probability:.2%})")
+        prediction = model.predict([[essay, age]])
+
+        if prediction[0] == 1 or prediction[0] == "not_single":
+            st.success("💑 Prediction: **Not Single**")
+        else:
+            st.info("💖 Prediction: **Single**")
