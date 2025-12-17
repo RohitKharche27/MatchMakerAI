@@ -152,5 +152,5 @@ This project is for **educational and research purposes only**. Predictions are 
 
 ## Author
 
-**Khodor**
+**Rohit**
 Computer Science Student | Machine Learning Enthusiast
